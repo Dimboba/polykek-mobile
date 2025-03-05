@@ -1,0 +1,11 @@
+message TestRequest {
+  required string id = 1;
+}
+
+message TestResponse {
+  required int32 num = 1;
+}
+
+service TestService {
+  rpc Get(TestRequest) returns (TestResponse);
+}
