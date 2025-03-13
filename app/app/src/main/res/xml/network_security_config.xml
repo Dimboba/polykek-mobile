@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/xml/network_security_config.xml -->
+<network-security-config>
+    <!-- Allow cleartext traffic to specific domains or IPs -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Add other domains/IPs if needed -->
+    </domain-config>
+</network-security-config>

@@ -2,13 +2,18 @@ package laz.dimboba.sounddetection.app.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import laz.dimboba.sounddetection.app.api.AuthClient
 import laz.dimboba.sounddetection.app.User
+import javax.inject.Inject
 
-class SignupViewModel: ViewModel() {
+@HiltViewModel
+class SignupViewModel @Inject constructor(
+    private val httpClient: AuthClient
+): ViewModel() {
     private val _state = MutableStateFlow<RegisterState>(RegisterState.Idle)
     val state: StateFlow<RegisterState> = _state
 
@@ -19,9 +24,12 @@ class SignupViewModel: ViewModel() {
                 return@launch
             }
             _state.value = RegisterState.Loading
-            delay(1000)
-            _state.value = RegisterState.Success(User("test"))
-            //_state.value = RegisterState.Error("Something went wrong")
+            val result = httpClient.signUp(username, password)
+            result.onSuccess {
+                _state.value = RegisterState.Success(it.user)
+            }.onFailure {
+                _state.value = RegisterState.Error(it.message ?: "Undefined Error")
+            }
         }
     }
 

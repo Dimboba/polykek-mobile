@@ -21,30 +21,46 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import laz.dimboba.sounddetection.app.api.AuthClient
+import laz.dimboba.sounddetection.app.api.TokenState
 import laz.dimboba.sounddetection.app.home.HomeScreen
 import laz.dimboba.sounddetection.app.login.LoginScreen
 import laz.dimboba.sounddetection.app.signup.SignupScreen
 import laz.dimboba.sounddetection.app.ui.theme.AppTheme
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var authClient: AuthClient
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val viewModel = AppViewModel(onExit = { this.finish() })
         setContent {
             AppTheme {
-                App(modifier = Modifier.fillMaxSize(), onExit = { this.finish() })
+                App(modifier = Modifier.fillMaxSize(), viewModel)
+            }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            if(authClient.validateTokenAtStartUp() == TokenState.ActiveTokens) {
+                viewModel.changeScreen(Screen.Home)
             }
         }
     }
 }
 
 @Composable
-fun App(modifier: Modifier = Modifier, onExit: () -> Unit) {
+fun App(modifier: Modifier = Modifier, viewModel: AppViewModel) {
     Surface(
         modifier = modifier,
         color = MaterialTheme.colorScheme.background
     ) {
-        AppContent(AppViewModel(onExit))
+        AppContent(viewModel)
     }
 }
 
@@ -103,7 +119,7 @@ enum class Screen { Login, SignUp, OnBoard, Home }
 @Composable
 fun AppPreview() {
     AppTheme {
-        App(modifier = Modifier.fillMaxSize(), {})
+        App(modifier = Modifier.fillMaxSize(), AppViewModel({}))
     }
 }
 
@@ -112,6 +128,6 @@ fun AppPreview() {
 @Composable
 fun AppPreviewDark() {
     AppTheme {
-        App(modifier = Modifier.fillMaxSize(), {})
+        App(modifier = Modifier.fillMaxSize(), AppViewModel({}))
     }
 }
