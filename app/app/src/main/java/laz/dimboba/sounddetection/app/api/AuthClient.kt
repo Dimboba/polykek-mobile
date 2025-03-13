@@ -30,7 +30,7 @@ class AuthClient @Inject constructor(
 
     suspend fun logIn(username: String, password: String): Result<LoginSignupResponse> {
         val requestBody = LoginRequest(username, password)
-        return postRequest(
+        return postJsonRequest(
             endpoint = "$authBaseUrl/login",
             requestBody = requestBody,
             serializer = LoginRequest.serializer(),
@@ -42,7 +42,7 @@ class AuthClient @Inject constructor(
 
     suspend fun signUp(username: String, password: String): Result<LoginSignupResponse> {
         val requestBody = LoginRequest(username, password)
-        return postRequest(
+        return postJsonRequest(
             endpoint = "$authBaseUrl/signup",
             requestBody = requestBody,
             serializer = LoginRequest.serializer(),
@@ -54,14 +54,18 @@ class AuthClient @Inject constructor(
 
     suspend fun refresh(refreshToken: String): Result<TokenResponse> {
         val requestBody = RefreshRequest(refreshToken)
-        return postRequest(
+        return postJsonRequest(
             endpoint = "$authBaseUrl/refresh",
             requestBody = requestBody,
             serializer = RefreshRequest.serializer(),
             responseSerializer = TokenResponse.serializer()
         ).onSuccess { result ->
             tokenManager.saveTokens(result.accessToken, result.refreshToken)
-        }.onFailure { tokenManager.clearTokens() }
+        }.onFailure {
+            if(it is ApiException && it.code == 401) {
+                tokenManager.clearTokens()
+            }
+        }
     }
 
 }

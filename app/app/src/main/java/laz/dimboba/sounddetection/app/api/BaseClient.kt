@@ -2,11 +2,15 @@ package laz.dimboba.sounddetection.app.api
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -21,11 +25,11 @@ open class BaseClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    protected suspend inline fun <reified T, reified R> postRequest(
+    protected suspend inline fun <reified T, reified R> postJsonRequest(
         endpoint: String,
         requestBody: T,
-        serializer: kotlinx.serialization.KSerializer<T>,
-        responseSerializer: kotlinx.serialization.KSerializer<R>,
+        serializer: KSerializer<T>,
+        responseSerializer: KSerializer<R>,
         authToken: String? = null
     ): Result<R> = withContext(Dispatchers.IO) {
         try {
@@ -42,11 +46,51 @@ open class BaseClient {
 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    return@withContext Result.failure(IOException("Request failed with code: ${response.code}"))
+                    return@withContext Result.failure(ApiException(response.code, "Request failed with code: ${response.code}"))
                 }
 
                 val responseBody = response.body?.string()
-                    ?: return@withContext Result.failure(IOException("Empty response"))
+                    ?: return@withContext Result.failure(ApiException(response.code, "Empty response"))
+
+                // Deserialize the response
+                val parsedResponse = json.decodeFromString(responseSerializer, responseBody)
+                Result.success(parsedResponse)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    protected suspend inline fun <reified R> postMultipart(
+        endpoint: String,
+        file: File,
+        mediaType: MediaType,
+        responseSerializer: KSerializer<R>,
+        authToken: String? = null
+    ): Result<R> = withContext(Dispatchers.IO) {
+        try {
+            val body = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", file.getName(),
+                    file.readBytes().toRequestBody(mediaType))
+                .build();
+
+            val requestBuilder = Request.Builder()
+                .url("$apiBaseUrl$endpoint")
+                .post(body)
+
+            if(authToken != null) {
+                requestBuilder.header("Authorization", "Bearer $authToken")
+            }
+            val request = requestBuilder.build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    return@withContext Result.failure(ApiException(response.code, "Request failed with code: ${response.code}"))
+                }
+
+                val responseBody = response.body?.string()
+                    ?: return@withContext Result.failure(ApiException(response.code, "Empty response"))
 
                 // Deserialize the response
                 val parsedResponse = json.decodeFromString(responseSerializer, responseBody)
@@ -57,3 +101,9 @@ open class BaseClient {
         }
     }
 }
+
+class ApiException(
+    val code: Int,
+    message: String,
+    cause: Throwable? = null
+) : IOException(message, cause)

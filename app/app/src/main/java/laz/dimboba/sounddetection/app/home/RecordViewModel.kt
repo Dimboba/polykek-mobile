@@ -6,18 +6,22 @@ import android.media.MediaRecorder
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import laz.dimboba.sounddetection.app.api.SoundClient
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
-class RecordViewModel(
-
+@HiltViewModel
+class RecordViewModel @Inject constructor(
+    private val soundClient: SoundClient
 ): ViewModel() {
     private val _state = MutableStateFlow<RecordStatus>(RecordStatus.Idle)
     val state: StateFlow<RecordStatus> = _state
@@ -36,12 +40,12 @@ class RecordViewModel(
         }
     }
 
-    private fun startRecording(context: Context) {
+    private fun startRecording(context: Context): File? {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
 
         val tempFile = File.createTempFile(
             "audio_record_${timestamp}",
-            ".m4a",
+            ".mp4",
             context.cacheDir
         )
 
@@ -57,10 +61,12 @@ class RecordViewModel(
                 prepare()
             } catch (e: IOException) {
                 _state.value = RecordStatus.RecordError
-                return
+                return null
             }
             start()
+            _state.value = RecordStatus.Recording
         }
+        return tempFile
     }
 
     private fun stopRecording() {
@@ -69,11 +75,14 @@ class RecordViewModel(
     }
 
     fun recordAndSendAudio(context: Context) {
-        startRecording(context)
+        val file = startRecording(context) ?: return
         viewModelScope.launch {
             delay(5_000)
             stopRecording()
-
+            _state.value = RecordStatus.Sending
+            soundClient.postSound(file)
+                .onFailure { _state.value = RecordStatus.ReceiveError(it.message ?: "Unknown error") }
+                .onSuccess { _state.value = RecordStatus.Success(it.note) }
         }
     }
 }

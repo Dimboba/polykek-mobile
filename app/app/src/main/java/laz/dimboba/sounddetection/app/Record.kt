@@ -1,13 +1,18 @@
+@file:UseSerializers(InstantSerializer::class)
+
 package laz.dimboba.sounddetection.app
 
-import java.time.LocalDateTime
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import java.time.Instant
 
+@Serializable
 data class Record (
     val id: Long,
-    val soundId: Long,
+    val fileName: String,
     val note: String,
-    val recordedAt: LocalDateTime,
-    val localFilePath: String?,
+    val createdAt: Instant,
+    val localFilePath: String? = null,
     val fileState: FileState = FileState.NOT_LOADED
 )
 

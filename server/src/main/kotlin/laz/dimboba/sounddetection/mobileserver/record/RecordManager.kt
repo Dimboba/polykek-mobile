@@ -18,7 +18,8 @@ class RecordManager(
     private lateinit var soundBucketName: String
 
     fun createRecord(userId: Long, file: MultipartFile): RecordDto {
-        val fileName = (file.originalFilename ?: "") + UUID.randomUUID().toString()
+        //Thread.sleep(5000)
+        val fileName = UUID.randomUUID().toString() + (file.originalFilename ?: "")
         val record = RecordEntity(
             id = null,
             userId = userId,

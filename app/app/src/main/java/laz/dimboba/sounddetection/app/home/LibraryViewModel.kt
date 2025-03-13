@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import laz.dimboba.sounddetection.app.Record
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 class LibraryViewModel: ViewModel() {
     private val _recordsState = mutableStateListOf<Record>()
@@ -65,11 +66,11 @@ suspend fun mockLoadMoreData(): List<Record>{
     delay(1000)
     return 1.rangeTo(10)
         .map {
-            laz.dimboba.sounddetection.app.Record(
+            Record(
                 it.toLong(),
-                it.toLong(),
+                it.toString(),
                 "D",
-                LocalDateTime.now().minusHours(it.toLong()),
+                LocalDateTime.now().minusHours(it.toLong()).toInstant(ZoneOffset.UTC),
                 null
             )
         }.toList()

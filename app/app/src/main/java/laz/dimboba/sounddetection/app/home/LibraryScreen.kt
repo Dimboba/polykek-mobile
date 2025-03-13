@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import laz.dimboba.sounddetection.app.FileState
 import laz.dimboba.sounddetection.app.Record
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
@@ -37,7 +38,7 @@ fun LibraryPage(
     val state = viewModel.libraryState.collectAsState()
     val records = viewModel.recordsState
 
-    Column (
+    Column(
         modifier = modifier.fillMaxSize(),
     ) {
         LazyColumn {
@@ -63,7 +64,7 @@ fun RecordCard(
     isNowPlayed: Boolean,
     isPaused: Boolean
 ) {
-    Card (
+    Card(
         modifier = modifier
     ) {
         Row(
@@ -74,24 +75,35 @@ fun RecordCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(record.recordedAt.format(DateTimeFormatter.ofPattern("yyyy LLL d")))
+                Text(
+                    DateTimeFormatter
+                        .ofPattern("yyyy LLL dd")
+                        .withZone(ZoneId.systemDefault())
+                        .format(record.createdAt)
+                )
                 Text(record.note)
             }
             RecordCardButton(viewModel, record, isNowPlayed, isPaused)
         }
     }
 }
+
 @Composable
-fun RecordCardButton(viewModel: LibraryViewModel, record: Record, isNowPlayed: Boolean, isPaused: Boolean) {
-    if(record.fileState == FileState.LOADING) {
+fun RecordCardButton(
+    viewModel: LibraryViewModel,
+    record: Record,
+    isNowPlayed: Boolean,
+    isPaused: Boolean
+) {
+    if (record.fileState == FileState.LOADING) {
         LoadingIcon()
         return
     }
-    if(record.fileState == FileState.NOT_LOADED) {
+    if (record.fileState == FileState.NOT_LOADED) {
         LoadButton(viewModel, record)
         return
     }
-    if(record.fileState == FileState.ERROR) {
+    if (record.fileState == FileState.ERROR) {
         ReloadButton(viewModel, record)
         return
     }
@@ -100,6 +112,7 @@ fun RecordCardButton(viewModel: LibraryViewModel, record: Record, isNowPlayed: B
     }
     PlayButton(viewModel, record)
 }
+
 @Composable
 fun ReloadButton(viewModel: LibraryViewModel, record: Record) {
     IconButton(
@@ -107,7 +120,8 @@ fun ReloadButton(viewModel: LibraryViewModel, record: Record) {
     ) {
         Icon(
             Icons.Filled.Add, "Stop sound",
-            modifier = Modifier.rotate(45f))
+            modifier = Modifier.rotate(45f)
+        )
     }
 }
 

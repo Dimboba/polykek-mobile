@@ -2,7 +2,6 @@ package laz.dimboba.sounddetection.app.api
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.compose.runtime.mutableStateOf
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext

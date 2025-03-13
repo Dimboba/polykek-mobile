@@ -1,11 +1,11 @@
 package laz.dimboba.sounddetection.app
 
-import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -19,43 +19,41 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import laz.dimboba.sounddetection.app.api.AuthClient
-import laz.dimboba.sounddetection.app.api.TokenState
 import laz.dimboba.sounddetection.app.home.HomeScreen
 import laz.dimboba.sounddetection.app.login.LoginScreen
+import laz.dimboba.sounddetection.app.login.LoginViewModel
 import laz.dimboba.sounddetection.app.signup.SignupScreen
+import laz.dimboba.sounddetection.app.signup.SignupViewModel
 import laz.dimboba.sounddetection.app.ui.theme.AppTheme
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject
-    lateinit var authClient: AuthClient
+    private val viewModel: AppNavigator by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val viewModel = AppViewModel(onExit = { this.finish() })
         setContent {
             AppTheme {
                 App(modifier = Modifier.fillMaxSize(), viewModel)
             }
         }
-        CoroutineScope(Dispatchers.Main).launch {
-            if(authClient.validateTokenAtStartUp() == TokenState.ActiveTokens) {
-                viewModel.changeScreen(Screen.Home)
+
+        lifecycleScope.launch {
+            viewModel.exitEvent.collect {
+                finish()
             }
         }
     }
+
 }
 
 @Composable
-fun App(modifier: Modifier = Modifier, viewModel: AppViewModel) {
+fun App(modifier: Modifier = Modifier, viewModel: AppNavigator) {
     Surface(
         modifier = modifier,
         color = MaterialTheme.colorScheme.background
@@ -66,8 +64,8 @@ fun App(modifier: Modifier = Modifier, viewModel: AppViewModel) {
 
 
 @Composable
-fun AppContent(viewModel: AppViewModel) {
-    var screen = viewModel.screen.collectAsState().value
+fun AppContent(viewModel: AppNavigator) {
+    var screen = viewModel.screen.collectAsState()
     var showExitDialog by remember { mutableStateOf(false) }
 
     BackHandler {
@@ -89,12 +87,17 @@ fun AppContent(viewModel: AppViewModel) {
             },
             containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
-            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Stay")
+                }
+            }
         )
     }
 
-    when (screen) {
-        Screen.Login -> LoginScreen(viewModel(),
+    when (screen.value) {
+        Screen.Login -> LoginScreen(viewModel<LoginViewModel>(),
             onNavigateToHome = { viewModel.changeScreen(Screen.Home, true) })
 
         Screen.OnBoard -> OnboardScreen(
@@ -103,31 +106,9 @@ fun AppContent(viewModel: AppViewModel) {
         )
 
         Screen.Home -> HomeScreen()
-        Screen.SignUp -> SignupScreen(viewModel(),
+        Screen.SignUp -> SignupScreen(viewModel<SignupViewModel>(),
             onNavigateHome = { viewModel.changeScreen(Screen.Home, true) })
     }
 }
 
-@Composable
-fun ExitDialog(activity: MainActivity) {
-
-}
-
 enum class Screen { Login, SignUp, OnBoard, Home }
-
-@Preview
-@Composable
-fun AppPreview() {
-    AppTheme {
-        App(modifier = Modifier.fillMaxSize(), AppViewModel({}))
-    }
-}
-
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun AppPreviewDark() {
-    AppTheme {
-        App(modifier = Modifier.fillMaxSize(), AppViewModel({}))
-    }
-}
