@@ -45,7 +45,7 @@ class AuthController(
     }
 
     @PostMapping("/refresh")
-    fun refresh(request: RefreshRequest): ResponseEntity<LoginRegisterResponse> {
+    fun refresh(@RequestBody request: @Valid RefreshRequest): ResponseEntity<LoginRegisterResponse> {
         val username = jwtTokenUtil.extractUsername(request.refreshToken)
         val user = userManager.loadUserByUsername(username)
         if(!jwtTokenUtil.validateRefreshToken(request.refreshToken)) {
@@ -59,10 +59,6 @@ class AuthController(
         return ResponseEntity.ok(LoginRegisterResponse(access, refresh, user.toDto()))
     }
 
-    data class RefreshRequest(
-        val refreshToken: String,
-    )
-
     data class RegisterRequest(
         val username: @NotBlank String,
         val password: @NotBlank String
@@ -72,6 +68,10 @@ class AuthController(
         val accessToken: String,
         val refreshToken: String,
         val user: UserDto
+    )
+
+    data class RefreshRequest(
+        val refreshToken: String
     )
 
     data class LoginRequest(
