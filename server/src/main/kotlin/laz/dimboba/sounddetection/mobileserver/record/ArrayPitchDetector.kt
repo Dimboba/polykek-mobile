@@ -1,16 +1,17 @@
-package laz.dimboba.sounddetection.mobileserver
+package laz.dimboba.sounddetection.mobileserver.record
 
 import be.tarsos.dsp.AudioEvent
 import be.tarsos.dsp.io.TarsosDSPAudioFormat
 import be.tarsos.dsp.pitch.PitchDetectionHandler
-import be.tarsos.dsp.pitch.PitchDetectionResult
 import be.tarsos.dsp.pitch.PitchProcessor
 import be.tarsos.dsp.pitch.PitchProcessor.PitchEstimationAlgorithm
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.ln
 
-class ArrayPitchDetector {
+class PitchDetector {
+//    fun detectPitch(): String {}
+
     fun detectPitch(audioData: FloatArray, sampleRate: Int): String {
         // Создаем AudioEvent из массива данных
         val format = TarsosDSPAudioFormat(

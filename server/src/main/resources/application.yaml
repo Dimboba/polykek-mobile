@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: mobile-server
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/polykek_android}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:qwe}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+app:
+  auth:
+    secret: ${SECRET_ACCESS:tDuk3fkWIC51UjXIqoLYY3TyjxHo5Prc8sABzZXNelo6YArg4wQhmI9zBdAdVzQZ}
+    access-token-time-to-live-ms: 3600000000
+    refresh-token-time-to-live-ms: 2592000000000
+  minio:
+    username: root
+    password: 12345678
+    url: "http://localhost:9000"
+    sound-bucket: sounds
