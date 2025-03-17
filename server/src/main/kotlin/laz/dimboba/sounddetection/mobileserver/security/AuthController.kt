@@ -7,8 +7,6 @@ import laz.dimboba.sounddetection.mobileserver.user.UserManager
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.AuthenticationException
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -49,9 +47,7 @@ class AuthController(
         val username = jwtTokenUtil.extractUsername(request.refreshToken)
         val user = userManager.loadUserByUsername(username)
         if(!jwtTokenUtil.validateRefreshToken(request.refreshToken)) {
-            //todo: remake all of this AuthenticationExceptions and check for status codes
-            throw object : AuthenticationException("User not found") {
-            }
+            throw AuthException("User not found")
         }
         val access = jwtTokenUtil.generateAccessToken(user)
         val refresh = jwtTokenUtil.generateRefreshToken(user)

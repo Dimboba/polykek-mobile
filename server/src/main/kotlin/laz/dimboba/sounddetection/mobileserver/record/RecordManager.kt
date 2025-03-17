@@ -1,18 +1,26 @@
 package laz.dimboba.sounddetection.mobileserver.record
 
+import io.minio.GetObjectArgs
+import io.minio.GetObjectResponse
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaTypeFactory
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import java.time.Instant
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 @Component
 class RecordManager(
     private val recordRepository: RecordRepository,
-    private val minioClient: MinioClient
+    private val minioClient: MinioClient,
+    private val pitchDetector: PitchDetector
 ) {
     @Value("\${app.minio.sound-bucket}")
     private lateinit var soundBucketName: String
@@ -40,9 +48,42 @@ class RecordManager(
                 .build()
         )
 
+        val tempFile = File.createTempFile("audio-temp-file", ".m4a")
+        FileOutputStream(tempFile).use { fos -> fos.write(file.bytes) }
+        val result = pitchDetector.detectPitch(tempFile)
+        if (result != null) {
+            record.note = result.first
+            record.octave = result.second
+        }
         val entity = recordRepository.save(record)
         //todo: add note recognition
         return entity.toDto()
+    }
+
+    @Transactional
+    fun getRecordsPagedForUser(userId: Long, before: Instant = Instant.now(), limit: Int = 20): List<RecordDto> {
+        return recordRepository.findByUserIdPaged(userId, before, limit)
+            .map { it.toDto() }
+    }
+
+    @Transactional
+    fun getById(recordId: Long): RecordDto? {
+        return recordRepository.findById(recordId)
+            .map { it.toDto() }
+            .getOrNull()
+    }
+
+    @Transactional
+    fun downloadFile(recordId: Long): GetObjectResponse {
+        val record = recordRepository.findById(recordId)
+            .orElseThrow { RuntimeException("Record not found") }
+        val response = minioClient.getObject(
+            GetObjectArgs.builder()
+                .bucket(soundBucketName)
+                .`object`(record.fileName)
+                .build()
+        )
+        return response
     }
 
 }

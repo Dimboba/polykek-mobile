@@ -44,6 +44,11 @@ dependencies {
     implementation("io.minio:minio:8.5.17")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jcodec:jcodec:0.2.5")
+    implementation("ws.schild:jave-core:3.5.0")
+//    implementation("ws.schild:jave-nativebin-osx64:3.5.0")
+    runtimeOnly("ws.schild:jave-all-deps:3.5.0")
+
 
     implementation("io.jsonwebtoken:jjwt-impl:$jsonwebtoken_version")
     implementation("io.jsonwebtoken:jjwt-jackson:$jsonwebtoken_version")

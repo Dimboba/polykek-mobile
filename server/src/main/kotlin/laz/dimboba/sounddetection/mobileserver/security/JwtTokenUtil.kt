@@ -1,12 +1,12 @@
 package laz.dimboba.sounddetection.mobileserver.security
 
 import io.jsonwebtoken.Claims
+import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
 import laz.dimboba.sounddetection.mobileserver.user.UserEntity
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.security.Key
@@ -42,18 +42,28 @@ class JwtTokenUtil {
         return extractClaim(token) { obj: Claims -> obj.expiration }
     }
 
+    fun extractIssuedAt(token: String): Date {
+        return extractClaim(token) { obj: Claims -> obj.issuedAt }
+    }
+
     fun <T> extractClaim(token: String, claimsResolver: Function<Claims, T>): T {
         val claims = extractAllClaims(token)
         return claimsResolver.apply(claims)
     }
 
     private fun extractAllClaims(token: String): Claims {
-        val key: Key = Keys.hmacShaKeyFor(secretKey.toByteArray(StandardCharsets.UTF_8))
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).body
+        try {
+            val key: Key = Keys.hmacShaKeyFor(secretKey.toByteArray(StandardCharsets.UTF_8))
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).body
+        } catch (e: ExpiredJwtException) {
+            throw AuthException("Expired JWT token")
+        }
     }
 
-    private fun isTokenExpired(token: String): Boolean {
-        return extractExpiration(token).before(Date())
+    private fun isTokenExpired(token: String, tokenType: String): Boolean {
+        val ttl = if(tokenType == accessString) accessTtl else refreshTtl
+        return extractExpiration(token).before(Date()) &&
+            extractIssuedAt(token).after(Date(System.currentTimeMillis() - ttl))
     }
 
     fun generateAccessToken(userDetails: UserEntity): String = generateToken(userDetails, accessString, accessTtl)
@@ -67,6 +77,7 @@ class JwtTokenUtil {
 
         val key: Key = Keys.hmacShaKeyFor(secretKey.toByteArray(StandardCharsets.UTF_8))
 
+        //todo: better not an expiration but use IssuedAt
         return Jwts.builder()
             .setClaims(claims)
             .setSubject(userDetails.username)
@@ -85,7 +96,7 @@ class JwtTokenUtil {
         val type = extractClaim(token) { obj: Claims -> obj[typeKey] }
         return type is String
             && type == tokenType
-            && !isTokenExpired(token)
+            && !isTokenExpired(token, tokenType)
     }
 
 }

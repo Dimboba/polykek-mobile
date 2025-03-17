@@ -1,5 +1,6 @@
 package laz.dimboba.sounddetection.mobileserver.security
 
+import io.jsonwebtoken.ExpiredJwtException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -22,9 +23,13 @@ class JwtTokenFilter(
         var id: Long? = null
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7)
-            username = jwtTokenUtil.extractUsername(jwt)
-            id = jwtTokenUtil.extractId(jwt)
+            try {
+                jwt = authorizationHeader.substring(7)
+                username = jwtTokenUtil.extractUsername(jwt)
+                id = jwtTokenUtil.extractId(jwt)
+            } catch (e: AuthException) {
+                response.status = HttpServletResponse.SC_FORBIDDEN
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().authentication == null) {

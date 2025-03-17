@@ -153,7 +153,7 @@ fun RecordCard(
             Column {
                 Text(
                     DateTimeFormatter
-                        .ofPattern("yyyy-LLL-dd H:m:s")
+                        .ofPattern("yyyy LLL dd  H:mm:ss")
                         .withZone(ZoneId.systemDefault())
                         .format(record.createdAt),
                     style = MaterialTheme.typography.titleMedium
