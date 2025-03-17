@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -12,6 +13,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.util.concurrent.TimeUnit
 
 open class BaseClient {
@@ -24,6 +26,83 @@ open class BaseClient {
         .writeTimeout(60, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
+
+    protected suspend inline fun getFileAsStream(
+        endpoint: String,
+        authToken: String? = null
+    ): Result<InputStream> = withContext(Dispatchers.IO) {
+        val requestBuilder = Request.Builder()
+            .url("$apiBaseUrl$endpoint")
+        if (authToken != null) {
+            requestBuilder.header("Authorization", "Bearer $authToken")
+        }
+        val request = requestBuilder.build()
+        val response = client.newCall(request).execute()
+        if (!response.isSuccessful) {
+            return@withContext Result.failure(
+                ApiException(
+                    response.code,
+                    "Request failed with code: ${response.code}"
+                )
+            )
+        }
+        val responseBody = response.body?.byteStream()
+            ?: return@withContext Result.failure(
+                ApiException(
+                    response.code,
+                    "Empty response"
+                )
+            )
+        return@withContext Result.success(responseBody)
+
+    }
+
+    protected suspend inline fun <reified T> getJsonRequest(
+        endpoint: String,
+        searchParams: Map<String, Any>,
+        responseSerializer: KSerializer<T>,
+        authToken: String? = null
+    ): Result<T> = withContext(Dispatchers.IO) {
+        try {
+            val urlBuilder = "$apiBaseUrl$endpoint".toHttpUrl().newBuilder()
+            searchParams.forEach { (key, value) ->
+                urlBuilder.addQueryParameter(key, value.toString())
+            }
+
+            val requestBuilder = Request.Builder()
+                .url(urlBuilder.build())
+                .get()
+                .header("Content-Type", "application/json")
+
+            if (authToken != null) {
+                requestBuilder.header("Authorization", "Bearer $authToken")
+            }
+            val request = requestBuilder.build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    return@withContext Result.failure(
+                        ApiException(
+                            response.code,
+                            "Request failed with code: ${response.code}"
+                        )
+                    )
+                }
+
+                val responseBody = response.body?.string()
+                    ?: return@withContext Result.failure(
+                        ApiException(
+                            response.code,
+                            "Empty response"
+                        )
+                    )
+
+                val parsedResponse = json.decodeFromString(responseSerializer, responseBody)
+                Result.success(parsedResponse)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     protected suspend inline fun <reified T, reified R> postJsonRequest(
         endpoint: String,
@@ -39,18 +118,28 @@ open class BaseClient {
                 .post(jsonString.toRequestBody(jsonMediaType))
                 .header("Content-Type", "application/json")
 
-            if(authToken != null) {
+            if (authToken != null) {
                 requestBuilder.header("Authorization", "Bearer $authToken")
             }
             val request = requestBuilder.build()
 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    return@withContext Result.failure(ApiException(response.code, "Request failed with code: ${response.code}"))
+                    return@withContext Result.failure(
+                        ApiException(
+                            response.code,
+                            "Request failed with code: ${response.code}"
+                        )
+                    )
                 }
 
                 val responseBody = response.body?.string()
-                    ?: return@withContext Result.failure(ApiException(response.code, "Empty response"))
+                    ?: return@withContext Result.failure(
+                        ApiException(
+                            response.code,
+                            "Empty response"
+                        )
+                    )
 
                 // Deserialize the response
                 val parsedResponse = json.decodeFromString(responseSerializer, responseBody)
@@ -71,26 +160,38 @@ open class BaseClient {
         try {
             val body = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("file", file.getName(),
-                    file.readBytes().toRequestBody(mediaType))
+                .addFormDataPart(
+                    "file", file.getName(),
+                    file.readBytes().toRequestBody(mediaType)
+                )
                 .build();
 
             val requestBuilder = Request.Builder()
                 .url("$apiBaseUrl$endpoint")
                 .post(body)
 
-            if(authToken != null) {
+            if (authToken != null) {
                 requestBuilder.header("Authorization", "Bearer $authToken")
             }
             val request = requestBuilder.build()
 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    return@withContext Result.failure(ApiException(response.code, "Request failed with code: ${response.code}"))
+                    return@withContext Result.failure(
+                        ApiException(
+                            response.code,
+                            "Request failed with code: ${response.code}"
+                        )
+                    )
                 }
 
                 val responseBody = response.body?.string()
-                    ?: return@withContext Result.failure(ApiException(response.code, "Empty response"))
+                    ?: return@withContext Result.failure(
+                        ApiException(
+                            response.code,
+                            "Empty response"
+                        )
+                    )
 
                 // Deserialize the response
                 val parsedResponse = json.decodeFromString(responseSerializer, responseBody)

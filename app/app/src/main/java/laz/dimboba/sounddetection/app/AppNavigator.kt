@@ -31,13 +31,13 @@ class AppNavigator @Inject constructor(
     init {
         viewModelScope.launch {
             if(authClient.validateTokenAtStartUp() == TokenState.ActiveTokens) {
-                changeScreen(Screen.Home)
+                changeScreen(Screen.Home, clearHistoryAfter = true)
             }
         }
         viewModelScope.launch {
-            tokenManager.tokenState.onEach { state ->
+            tokenManager.tokenState.collect { state ->
                 if (state == TokenState.NoActiveTokens) {
-                    changeScreen(Screen.OnBoard)
+                    changeScreen(Screen.OnBoard, clearHistoryAfter = true)
                 }
             }
         }

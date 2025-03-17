@@ -33,7 +33,7 @@ fun OnboardScreen(
                 MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             ),
-            modifier = Modifier.padding(top = 20.dp)
+            modifier = Modifier.padding(top = 50.dp)
                 .align(Alignment.TopCenter)
         )
         Icon(

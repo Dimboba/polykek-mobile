@@ -9,8 +9,8 @@ import java.time.Instant
 @Serializable
 data class Record (
     val id: Long,
-    val fileName: String,
-    val note: String,
+    val note: String?,
+    val octave: Int?,
     val createdAt: Instant,
     val localFilePath: String? = null,
     val fileState: FileState = FileState.NOT_LOADED

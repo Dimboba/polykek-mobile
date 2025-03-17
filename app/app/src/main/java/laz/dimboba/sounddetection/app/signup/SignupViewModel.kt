@@ -8,14 +8,28 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import laz.dimboba.sounddetection.app.api.AuthClient
 import laz.dimboba.sounddetection.app.User
+import laz.dimboba.sounddetection.app.api.TokenManager
+import laz.dimboba.sounddetection.app.api.TokenState
+import laz.dimboba.sounddetection.app.login.AuthState
 import javax.inject.Inject
 
 @HiltViewModel
 class SignupViewModel @Inject constructor(
-    private val httpClient: AuthClient
+    private val httpClient: AuthClient,
+    private val tokenManager: TokenManager
 ): ViewModel() {
     private val _state = MutableStateFlow<RegisterState>(RegisterState.Idle)
     val state: StateFlow<RegisterState> = _state
+
+    init {
+        viewModelScope.launch {
+            tokenManager.tokenState.collect { state ->
+                if (state == TokenState.NoActiveTokens) {
+                    _state.value = RegisterState.Idle
+                }
+            }
+        }
+    }
 
     fun registerUser(username: String, password: String, passwordRepeat: String) {
         viewModelScope.launch {
