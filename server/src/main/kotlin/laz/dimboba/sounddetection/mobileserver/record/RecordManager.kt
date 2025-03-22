@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 import java.time.Instant
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -84,6 +83,36 @@ class RecordManager(
                 .build()
         )
         return response
+    }
+
+    @Transactional
+    fun getRecordCountForUser(userId: Long): Long {
+        return recordRepository.countByUserId(userId)
+    }
+
+    @Transactional
+    fun getMostPopularNotes(userId: Long): NoteCountDto {
+        val projections = recordRepository.getMostPopularNotesForUser(userId)
+        return NoteCountDto(
+            projections.map { it.getField() },
+            projections.firstOrNull()?.getCount() ?: 0
+        )
+    }
+
+    @Transactional
+    fun getMostPopularOctaves(userId: Long): OctaveCountDto {
+        val projections = recordRepository.getMostPopularOctavesForUser(userId)
+        return OctaveCountDto(
+            projections.map { it.getField() },
+            projections.firstOrNull()?.getCount() ?: 0
+        )
+    }
+
+    @Transactional
+    fun getLastRecordForUser(userId: Long): RecordDto? {
+        return recordRepository.getNewestRecordsByUserId(userId, 1)
+            .firstOrNull()
+            ?.toDto()
     }
 
 }

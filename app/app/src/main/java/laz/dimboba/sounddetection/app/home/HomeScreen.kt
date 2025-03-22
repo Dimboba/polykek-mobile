@@ -25,19 +25,31 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import laz.dimboba.sounddetection.app.home.library.LibraryPage
+import laz.dimboba.sounddetection.app.home.record.RecordPage
+import laz.dimboba.sounddetection.app.home.stats.StatsPage
+import laz.dimboba.sounddetection.app.home.stats.StatsViewModel
+import laz.dimboba.sounddetection.app.home.stats.UserSettingsState
 import laz.dimboba.sounddetection.app.ui.theme.AppTheme
 
 val pages = listOf<@Composable (modifier: Modifier?) -> Unit>(
-    { SettingsPage() },
+    { StatsPage() },
     { RecordPage() },
     { LibraryPage() }
 )
@@ -45,10 +57,31 @@ val pages = listOf<@Composable (modifier: Modifier?) -> Unit>(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen () {
+fun HomeScreen (
+    viewModel: StatsViewModel = viewModel()
+) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
+    val snackbarHostState = remember { SnackbarHostState() }
+    val settingsState = viewModel.settingsState.collectAsState()
+
+    LaunchedEffect(settingsState.value) {
+        val state = settingsState.value
+        if (state == UserSettingsState.Success) {
+            snackbarHostState.showSnackbar("Successfully updated user")
+        } else if(state is UserSettingsState.Error) {
+            snackbarHostState.showSnackbar(
+                "Could not update user, because: ${state.message}"
+            )
+        }
+    }
+
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                snackbarHostState
+            )
+        },
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarColors(
@@ -114,18 +147,6 @@ fun HomeScreen () {
         }
     }
 }
-
-@Composable
-fun SettingsPage(
-    modifier: Modifier = Modifier
-) {
-    Column (
-        modifier = modifier.fillMaxSize(),
-    ) {
-
-    }
-}
-
 
 @Composable
 @Preview

@@ -1,7 +1,11 @@
 package laz.dimboba.sounddetection.app.api
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import laz.dimboba.sounddetection.app.User
+import laz.dimboba.sounddetection.app.dto.User
+import laz.dimboba.sounddetection.app.data.TokenManager
+import laz.dimboba.sounddetection.app.data.TokenState
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,7 +56,7 @@ class AuthClient @Inject constructor(
         }
     }
 
-    suspend fun refresh(refreshToken: String): Result<TokenResponse> {
+    private suspend fun refresh(refreshToken: String): Result<TokenResponse> {
         val requestBody = RefreshRequest(refreshToken)
         return postJsonRequest(
             endpoint = "$authBaseUrl/refresh",
@@ -67,6 +71,25 @@ class AuthClient @Inject constructor(
             }
         }
     }
+
+    suspend fun <T> sendRequestWithRetry(requestFunc: suspend () -> Result<T>): Result<T> =
+        withContext(Dispatchers.IO) {
+            requestFunc()
+                .onSuccess { return@withContext Result.success(it) }
+                .onFailure { error ->
+                    if (error is ApiException && error.code == 403) {
+                        refresh(tokenManager.getRefreshToken())
+                            .onFailure {
+                                return@withContext Result.failure(it)
+                            }
+                            .onSuccess {
+                                return@withContext requestFunc()
+                            }
+                    } else {
+                        return@withContext Result.failure(error)
+                    }
+                }
+        }
 
 }
 

@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home
+package laz.dimboba.sounddetection.app.home.record
 
 import android.content.Context
 import android.media.MediaRecorder
@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import laz.dimboba.sounddetection.app.data.RecordRepository
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -76,7 +77,9 @@ class RecordViewModel @Inject constructor(
             stopRecording()
             _state.value = RecordStatus.Sending
             repository.addRecord(file)
-                .onFailure { _state.value = RecordStatus.ReceiveError(it.message ?: "Unknown error") }
+                .onFailure { _state.value =
+                    RecordStatus.ReceiveError(it.message ?: "Undefined Error")
+                }
                 .onSuccess { _state.value = RecordStatus.Success(it.note ?: "undefined") }
         }
     }
@@ -88,6 +91,5 @@ sealed class RecordStatus {
     object Sending: RecordStatus()
     object RecordError: RecordStatus()
     data class ReceiveError(val message: String): RecordStatus()
-    //todo: maybe use enum for notes?
     data class Success(val note: String): RecordStatus()
 }

@@ -10,6 +10,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
@@ -104,7 +105,30 @@ open class BaseClient {
         }
     }
 
+    protected suspend inline fun <reified T, reified R> putJsonRequest(
+        endpoint: String,
+        requestBody: T,
+        serializer: KSerializer<T>,
+        responseSerializer: KSerializer<R>,
+        authToken: String? = null
+    ): Result<R>  = sendJsonRequest(
+    JsonSendMethod.Put,
+    endpoint, requestBody, serializer, responseSerializer, authToken
+    )
+
     protected suspend inline fun <reified T, reified R> postJsonRequest(
+        endpoint: String,
+        requestBody: T,
+        serializer: KSerializer<T>,
+        responseSerializer: KSerializer<R>,
+        authToken: String? = null
+    ): Result<R> = sendJsonRequest(
+        JsonSendMethod.Post,
+        endpoint, requestBody, serializer, responseSerializer, authToken
+    )
+
+    protected suspend inline fun <reified T, reified R> sendJsonRequest(
+        method: JsonSendMethod,
         endpoint: String,
         requestBody: T,
         serializer: KSerializer<T>,
@@ -112,10 +136,11 @@ open class BaseClient {
         authToken: String? = null
     ): Result<R> = withContext(Dispatchers.IO) {
         try {
+            val methodFunc = method.func
             val jsonString = json.encodeToString(serializer, requestBody)
             val requestBuilder = Request.Builder()
                 .url("$apiBaseUrl$endpoint")
-                .post(jsonString.toRequestBody(jsonMediaType))
+                .methodFunc(jsonString.toRequestBody(jsonMediaType))
                 .header("Content-Type", "application/json")
 
             if (authToken != null) {
@@ -201,6 +226,13 @@ open class BaseClient {
             Result.failure(e)
         }
     }
+}
+
+enum class JsonSendMethod(
+    val func: Request.Builder.(RequestBody) -> Request.Builder
+) {
+    Post( { this.post(it) } ),
+    Put( { this.put(it) } )
 }
 
 class ApiException(

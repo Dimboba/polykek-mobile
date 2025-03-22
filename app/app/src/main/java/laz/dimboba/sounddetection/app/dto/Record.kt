@@ -1,6 +1,6 @@
 @file:UseSerializers(InstantSerializer::class)
 
-package laz.dimboba.sounddetection.app
+package laz.dimboba.sounddetection.app.dto
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers

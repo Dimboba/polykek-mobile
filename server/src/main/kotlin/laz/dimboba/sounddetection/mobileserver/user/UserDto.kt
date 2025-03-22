@@ -15,3 +15,8 @@ data class UserWithRecordsDto(
     val createdAt: Instant,
     val records: List<RecordDto>,
 )
+
+data class UpdateUserRequest(
+    val username: String?,
+    val password: String?
+)

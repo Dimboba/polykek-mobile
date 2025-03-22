@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app
+package laz.dimboba.sounddetection.app.dto
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

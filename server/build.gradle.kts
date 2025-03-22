@@ -37,6 +37,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.0")
 
     implementation("be.tarsos.dsp:core:2.5")
     implementation("be.tarsos.dsp:jvm:2.5")
@@ -46,7 +47,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jcodec:jcodec:0.2.5")
     implementation("ws.schild:jave-core:3.5.0")
-//    implementation("ws.schild:jave-nativebin-osx64:3.5.0")
     runtimeOnly("ws.schild:jave-all-deps:3.5.0")
 
 

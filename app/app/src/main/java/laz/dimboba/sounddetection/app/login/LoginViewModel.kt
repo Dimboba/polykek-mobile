@@ -6,17 +6,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import laz.dimboba.sounddetection.app.Screen
-import laz.dimboba.sounddetection.app.api.AuthClient
-import laz.dimboba.sounddetection.app.User
-import laz.dimboba.sounddetection.app.api.TokenManager
-import laz.dimboba.sounddetection.app.api.TokenState
+import laz.dimboba.sounddetection.app.dto.User
+import laz.dimboba.sounddetection.app.data.LoginUseCase
+import laz.dimboba.sounddetection.app.data.TokenManager
+import laz.dimboba.sounddetection.app.data.TokenState
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val httpClient: AuthClient,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val loginUseCase: LoginUseCase
 ): ViewModel () {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
@@ -34,7 +33,7 @@ class LoginViewModel @Inject constructor(
     fun login(username: String, password: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            val result = httpClient.logIn(username, password)
+            val result = loginUseCase(username, password)
             result.onSuccess {
                 _authState.value = AuthState.Success(it.user)
             }.onFailure {

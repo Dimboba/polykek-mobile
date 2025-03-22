@@ -3,7 +3,8 @@ package laz.dimboba.sounddetection.app.api
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
-import laz.dimboba.sounddetection.app.Record
+import laz.dimboba.sounddetection.app.data.TokenManager
+import laz.dimboba.sounddetection.app.dto.Record
 import okhttp3.MediaType.Companion.toMediaType
 import java.io.File
 import java.io.InputStream
@@ -19,7 +20,7 @@ class SoundClient @Inject constructor(
     private final val mediaType = "audio/mp4".toMediaType()
 
     suspend fun postSound(file: File): Result<Record> {
-        return sendRequestWithRetry {
+        return authClient.sendRequestWithRetry {
             postMultipart(
                 "/api/record",
                 file,
@@ -31,7 +32,7 @@ class SoundClient @Inject constructor(
     }
 
     suspend fun getRecordsPage(before: Instant, limit: Int): Result<List<Record>> {
-        return sendRequestWithRetry {
+        return authClient.sendRequestWithRetry {
             getJsonRequest(
                 "/api/record",
                 mapOf(
@@ -45,27 +46,8 @@ class SoundClient @Inject constructor(
     }
 
     suspend fun downloadFile(recordId: Long): Result<InputStream> {
-        return sendRequestWithRetry {
+        return authClient.sendRequestWithRetry {
             getFileAsStream("/api/record/$recordId/download", tokenManager.getAccessToken())
         }
     }
-
-    private suspend fun <T> sendRequestWithRetry(requestFunc: suspend () -> Result<T>): Result<T> =
-        withContext(Dispatchers.IO) {
-            requestFunc()
-                .onSuccess { return@withContext Result.success(it) }
-                .onFailure { error ->
-                    if (error is ApiException && error.code == 403) {
-                        authClient.refresh(tokenManager.getRefreshToken())
-                            .onFailure {
-                                return@withContext Result.failure(it)
-                            }
-                            .onSuccess {
-                                return@withContext requestFunc()
-                            }
-                    } else {
-                        return@withContext Result.failure(error)
-                    }
-                }
-        }
 }

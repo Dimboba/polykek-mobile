@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.api
+package laz.dimboba.sounddetection.app.data
 
 import android.content.Context
 import android.content.SharedPreferences

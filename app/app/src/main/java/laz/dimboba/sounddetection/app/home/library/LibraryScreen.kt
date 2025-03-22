@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home
+package laz.dimboba.sounddetection.app.home.library
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,8 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import laz.dimboba.sounddetection.app.FileState
-import laz.dimboba.sounddetection.app.Record
+import laz.dimboba.sounddetection.app.dto.FileState
+import laz.dimboba.sounddetection.app.dto.Record
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 

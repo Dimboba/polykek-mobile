@@ -14,10 +14,10 @@ spring:
 app:
   auth:
     secret: ${SECRET_ACCESS:tDuk3fkWIC51UjXIqoLYY3TyjxHo5Prc8sABzZXNelo6YArg4wQhmI9zBdAdVzQZ}
-#    access-token-time-to-live-ms: 3600000000
-#    refresh-token-time-to-live-ms: 2592000000000
-    access-token-time-to-live-ms: 15000
-    refresh-token-time-to-live-ms: 30000
+    access-token-time-to-live-ms: 3600000000
+    refresh-token-time-to-live-ms: 2592000000000
+#    access-token-time-to-live-ms: 15000
+#    refresh-token-time-to-live-ms: 30000
   minio:
     username: root
     password: 12345678

@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home
+package laz.dimboba.sounddetection.app.home.record
 
 import android.Manifest
 import android.content.pm.PackageManager

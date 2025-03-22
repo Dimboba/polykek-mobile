@@ -21,6 +21,6 @@ class RecordEntity (
     var createdAt: Instant? = null,
 ) {
     fun toDto() = RecordDto(
-        id!!, note!!, octave!!, createdAt!!
+        id!!, note!!, octave, createdAt!!
     )
 }

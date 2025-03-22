@@ -6,17 +6,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import laz.dimboba.sounddetection.app.api.AuthClient
-import laz.dimboba.sounddetection.app.User
-import laz.dimboba.sounddetection.app.api.TokenManager
-import laz.dimboba.sounddetection.app.api.TokenState
-import laz.dimboba.sounddetection.app.login.AuthState
+import laz.dimboba.sounddetection.app.dto.User
+import laz.dimboba.sounddetection.app.data.SignupUseCase
+import laz.dimboba.sounddetection.app.data.TokenManager
+import laz.dimboba.sounddetection.app.data.TokenState
 import javax.inject.Inject
 
 @HiltViewModel
 class SignupViewModel @Inject constructor(
-    private val httpClient: AuthClient,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val signupUseCase: SignupUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow<RegisterState>(RegisterState.Idle)
     val state: StateFlow<RegisterState> = _state
@@ -38,7 +37,7 @@ class SignupViewModel @Inject constructor(
                 return@launch
             }
             _state.value = RegisterState.Loading
-            val result = httpClient.signUp(username, password)
+            val result = signupUseCase(username, password)
             result.onSuccess {
                 _state.value = RegisterState.Success(it.user)
             }.onFailure {

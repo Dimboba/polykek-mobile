@@ -7,11 +7,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import laz.dimboba.sounddetection.app.api.AuthClient
-import laz.dimboba.sounddetection.app.api.TokenManager
-import laz.dimboba.sounddetection.app.api.TokenState
+import laz.dimboba.sounddetection.app.data.TokenManager
+import laz.dimboba.sounddetection.app.data.TokenState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +26,6 @@ class AppNavigator @Inject constructor(
 
     val screen: StateFlow<Screen> = currentScreen
 
-    //todo: test it
     init {
         viewModelScope.launch {
             if(authClient.validateTokenAtStartUp() == TokenState.ActiveTokens) {

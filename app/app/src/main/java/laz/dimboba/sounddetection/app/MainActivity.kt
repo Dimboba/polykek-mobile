@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import laz.dimboba.sounddetection.app.home.HomeScreen
 import laz.dimboba.sounddetection.app.login.LoginScreen
 import laz.dimboba.sounddetection.app.login.LoginViewModel
+import laz.dimboba.sounddetection.app.onboard.OnboardScreen
 import laz.dimboba.sounddetection.app.signup.SignupScreen
 import laz.dimboba.sounddetection.app.signup.SignupViewModel
 import laz.dimboba.sounddetection.app.ui.theme.AppTheme

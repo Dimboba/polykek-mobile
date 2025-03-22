@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home
+package laz.dimboba.sounddetection.app.home.library
 
 import android.content.Context
 import android.media.MediaPlayer
@@ -9,9 +9,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import laz.dimboba.sounddetection.app.FileState
-import laz.dimboba.sounddetection.app.Record
+import laz.dimboba.sounddetection.app.data.RecordRepository
+import laz.dimboba.sounddetection.app.dto.FileState
+import laz.dimboba.sounddetection.app.dto.Record
 import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,29 +29,23 @@ class LibraryViewModel @Inject constructor(
     var mediaPlayer: MediaPlayer? = null
 
     private final val pageSize = 20;
+    private val futureInstant: Instant
+        get() = Instant.now().plus(1, ChronoUnit.DAYS)
 
     init {
-        viewModelScope.launch {
-            repository.state.collect { repoState ->
-                _libraryState.value = libraryState.value.copy(
-                    isLoading = repoState.isLoading,
-                    hasMoreData = repoState.hasMoreData,
-                    errorMessage = repoState.errorMessage
-                )
-            }
-        }
-
-        //todo: FUNNY BUG after log out by timeout does not reload init data
         loadMoreData()
     }
 
     fun reloadData() {
         if (_libraryState.value.isLoading || _libraryState.value.isRefreshing) return
 
-        _libraryState.value = _libraryState.value.copy(isRefreshing = true)
+        _libraryState.value = _libraryState.value.copy(
+            isRefreshing = true,
+            hasMoreData = true
+        )
         viewModelScope.launch {
             repository.clearRecords()
-            repository.loadRecords(Instant.now(), pageSize)
+            loadRecords()
             _libraryState.value = _libraryState.value.copy(isRefreshing = false)
         }
     }
@@ -58,9 +55,29 @@ class LibraryViewModel @Inject constructor(
 
         viewModelScope.launch {
             val lastRecord = records.lastOrNull()
-            val afterInstant = lastRecord?.createdAt ?: Instant.now()
-            repository.loadRecords(before = afterInstant, limit = pageSize)
+            val afterInstant = lastRecord?.createdAt ?: futureInstant
+            loadRecords(afterInstant)
         }
+    }
+
+    private suspend fun loadRecords(before: Instant = futureInstant, limit: Int = pageSize): Unit {
+        _libraryState.value = _libraryState.value.copy(
+            isLoading = true,
+            errorMessage = null
+        )
+        repository.loadRecords(before, limit)
+            .onFailure {
+                _libraryState.value = _libraryState.value.copy(
+                    isLoading = false,
+                    errorMessage = it.message
+                )
+            }
+            .onSuccess {
+                _libraryState.value = _libraryState.value.copy(
+                    isLoading = false,
+                    hasMoreData = it.size >= limit
+                )
+            }
     }
 
 

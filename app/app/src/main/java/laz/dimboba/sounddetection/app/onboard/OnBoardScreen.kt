@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app
+package laz.dimboba.sounddetection.app.onboard
 
 import BaseButton
 import androidx.compose.foundation.layout.Box
@@ -63,19 +63,19 @@ fun Buttons(
     ) {
         Text("if you are new to app")
         BaseButton(
-            "Log In",
-            modifier = modifier.padding(vertical = 10.dp),
-            onClick = onLogin
-        )
-        Text("if you already have an account")
-        BaseButton(
             "Sign Up",
-            modifier = modifier.padding(top = 10.dp, bottom = 50.dp),
+            modifier = modifier.padding(vertical = 10.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary
             ),
             onClick = onSignup
+        )
+        Text("if you already have an account")
+        BaseButton(
+            "Log In",
+            modifier = modifier.padding(top = 10.dp, bottom = 50.dp),
+            onClick = onLogin
         )
     }
 }
