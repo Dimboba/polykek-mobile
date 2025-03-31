@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home.record
+package laz.dimboba.sounddetection.app.screens.home.record
 
 import android.content.Context
 import android.media.MediaRecorder

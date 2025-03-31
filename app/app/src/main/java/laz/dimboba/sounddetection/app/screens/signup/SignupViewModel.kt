@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.signup
+package laz.dimboba.sounddetection.app.screens.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

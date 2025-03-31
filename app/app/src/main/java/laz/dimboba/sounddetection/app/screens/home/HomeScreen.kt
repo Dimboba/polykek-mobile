@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home
+package laz.dimboba.sounddetection.app.screens.home
 
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -41,11 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import laz.dimboba.sounddetection.app.home.library.LibraryPage
-import laz.dimboba.sounddetection.app.home.record.RecordPage
-import laz.dimboba.sounddetection.app.home.stats.StatsPage
-import laz.dimboba.sounddetection.app.home.stats.StatsViewModel
-import laz.dimboba.sounddetection.app.home.stats.UserSettingsState
+import laz.dimboba.sounddetection.app.screens.home.library.LibraryPage
+import laz.dimboba.sounddetection.app.screens.home.record.RecordPage
+import laz.dimboba.sounddetection.app.screens.home.stats.StatsPage
+import laz.dimboba.sounddetection.app.screens.home.stats.StatsViewModel
+import laz.dimboba.sounddetection.app.screens.home.stats.UserSettingsState
 import laz.dimboba.sounddetection.app.ui.theme.AppTheme
 
 val pages = listOf<@Composable (modifier: Modifier?) -> Unit>(

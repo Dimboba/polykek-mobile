@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.onboard
+package laz.dimboba.sounddetection.app.screens.onboard
 
 import BaseButton
 import androidx.compose.foundation.Image

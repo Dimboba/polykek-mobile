@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home.stats
+package laz.dimboba.sounddetection.app.screens.home.stats
 
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel

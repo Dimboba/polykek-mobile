@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.login
+package laz.dimboba.sounddetection.app.screens.login
 
 import BaseButton
 import androidx.compose.foundation.layout.Arrangement

@@ -23,12 +23,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import laz.dimboba.sounddetection.app.home.HomeScreen
-import laz.dimboba.sounddetection.app.login.LoginScreen
-import laz.dimboba.sounddetection.app.login.LoginViewModel
-import laz.dimboba.sounddetection.app.onboard.OnboardScreen
-import laz.dimboba.sounddetection.app.signup.SignupScreen
-import laz.dimboba.sounddetection.app.signup.SignupViewModel
+import laz.dimboba.sounddetection.app.screens.home.HomeScreen
+import laz.dimboba.sounddetection.app.screens.login.LoginScreen
+import laz.dimboba.sounddetection.app.screens.login.LoginViewModel
+import laz.dimboba.sounddetection.app.screens.onboard.OnboardScreen
+import laz.dimboba.sounddetection.app.screens.signup.SignupScreen
+import laz.dimboba.sounddetection.app.screens.signup.SignupViewModel
 import laz.dimboba.sounddetection.app.ui.theme.AppTheme
 
 @AndroidEntryPoint

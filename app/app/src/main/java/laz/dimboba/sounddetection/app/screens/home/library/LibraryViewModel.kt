@@ -1,4 +1,4 @@
-package laz.dimboba.sounddetection.app.home.library
+package laz.dimboba.sounddetection.app.screens.home.library
 
 import android.content.Context
 import android.media.MediaPlayer
