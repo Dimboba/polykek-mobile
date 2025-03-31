@@ -63,8 +63,7 @@ class PitchDetector {
 
             val pitchHandler = PitchDetectionHandler { result, event ->
                 val pitchInHz = result.pitch
-                if (pitchInHz > 0) { // Valid pitch detected
-                    // Calculate RMS amplitude for this audio frame
+                if (pitchInHz > 0) {
                     val rms = calculateRMS(event.floatBuffer)
 
                     pitchResults.add(PitchResult(

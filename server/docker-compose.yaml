@@ -1,5 +1,21 @@
 
 services:
+  server-app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - minio
+    container_name: server-app
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/polykek_android
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: qwe
+      MINIO_USERNAME: root
+      MINIO_PASSWORD: 12345678
+      MINIO_URL: http://minio:9000
+
   postgres:
     image: 'postgres:16.1-alpine'
     environment:
